@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <style>
+        #issMap {
+            height: 180px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js" integrity="sha512-N4kV7GkNv7QR7RX9YF/olywyIgIwNvfEe2nZtfyj73HdjCUkAfOBDbcuJ/cTaN04JKRnw1YG1wnUyNKMsNgg3g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <title>Data Selfie App</title>
+</head>
+<body>
+    <h1>Data Selfie App</h1>
+    <a href='index.html'>enter</a>|<a href='all.html'>list</a>
+    
+    <p>
+        latitude: <span id='latitude'></span>&deg;<br>
+        longitude: <span id='longitude'></span>&deg;<br>
+    </p>
+    <label for="item">Enter an item</label>
+    <input id="item" value="an item">
+
+    <button id="submit">submit</button>
+    <div id='issMap'></div>
+    <script>
+        
+
+        function setup() {
+            noCanvas();
+            const video = createCapture(VIDEO);
+            video.size(320, 240);
+
+            let lat, lon;
+            const button = document.getElementById("submit");
+            button.addEventListener('click', async event => {
+                const item = document.getElementById("item").value;
+                video.loadPixels();
+                const image64 = video.canvas.toDataURL();
+                const data = { lat, lon, item, image64 };
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data)
+                };
+
+                const response = await fetch('/api', options);
+                const json = await response.json();
+                console.log(json);
+            });
+            // Getting user location
+
+            if ('geolocation' in navigator) {
+                console.log('geolocation available');
+                navigator.geolocation.getCurrentPosition(async function(position) {
+                    lat = position.coords.latitude;
+                    lon = position.coords.longitude;
+                    document.getElementById('latitude').textContent = lat;
+                    document.getElementById('longitude').textContent = lon;
+                    marker.setLatLng([lat, lon]);
+                    mymap.setView([lat, lon]);
+                });
+            
+            } else {
+                lat = 0;
+                lon = 0;
+                marker.setLatLng([lat, lon]);
+                mymap.setView([lat, lon])
+                console.log('geolocation not available');
+
+            };
+            // Making a map and tiles
+            const scl = 7;
+            const mymap = L.map('issMap').setView([0, 0], 1);
+            const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            
+            // Adding opensea tileurl to mymap
+            const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            const tiles = L.tileLayer(tileUrl, { attribution });
+            tiles.addTo(mymap);
+            
+            // Making a market with custom icon
+            var issIcon = L.icon({
+                iconUrl: 'iss200.png',
+                iconSize: [25, 16],
+                iconAnchor: [12.5, 8]
+            });
+            const marker = L.marker([0, 0], {icon:issIcon}).addTo(mymap);
+            
+            mymap.on('zoom', function() {
+                updateZoom(mymap.getZoom());
+            })
+
+            function updateZoom(zoom) {
+                let iconSize = [25+(zoom*scl), 16+(zoom*scl)];
+                let iconAnchor = [(25+(zoom*scl))/2, (16+(zoom*scl))/2];
+                marker.setIcon(L.icon({
+                    iconUrl: 'iss200.png',
+                    iconSize: iconSize,
+                    iconAnchor: iconAnchor
+                }));
+            };
+        }
+
+        
+
+    </script>
+</body>
+</html>

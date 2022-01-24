@@ -1,0 +1,22 @@
+{
+  "name": "nodejs_server",
+  "version": "1.0.0",
+  "description": "This is the data selfie app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "example",
+    "data",
+    "selfie"
+  ],
+  "author": "Me",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^14.2.0",
+    "express": "^4.17.2",
+    "nedb": "^1.8.0",
+    "node-fetch": "^2.6.7"
+  }
+}
